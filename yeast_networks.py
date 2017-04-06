@@ -37,8 +37,12 @@ class YeastData(object):
                 break
             #print "line_dict", line_dict
             line_dicts.append(line_dict)
-            oln_to_gn[line_dict[TFOLN]] = line_dict[TF]
-            oln_to_gn[line_dict[TARGOLN]] = line_dict[TARG]
+            try:
+                oln_to_gn[line_dict[TFOLN]] = line_dict[TF]
+                oln_to_gn[line_dict[TARGOLN]] = line_dict[TARG]
+            except:
+                print len(line_dicts), "bad line_dict", line_dict
+                raise
         self.oln_to_gn = oln_to_gn
         self.line_dicts = line_dicts
         self.gene_clusters = set(line_dict[CLUSTER] for line_dict in line_dicts)
@@ -160,6 +164,7 @@ class YeastData(object):
         N.title_html.value = name
         N.restore_click()
         N.container_dropdown.value = dNetwork.CANVAS
+        # for precision network only pair with expression levels... AWAITING DATA.
         return N
 
     def linked_expression(self, filename="expression.tsv", side_length=500):
