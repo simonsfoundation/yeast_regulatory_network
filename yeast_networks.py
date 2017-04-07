@@ -24,8 +24,9 @@ IN_NETWORKS = (GS, YD, YI, SGD, K)
 
 class YeastData(object):
 
-    def __init__(self, filename="compare-old-vs-new.tsv", limit=2000):
+    def __init__(self, filename="data/compare-old-vs-new.tsv", expression_fn="data/expression-reduced-200.tsv", limit=2000):
         self.filename = filename
+        self.expression_fn = expression_fn
         self.file = open(filename)
         self.headers = ["counter"] + self.get_line_data(strict=True)
         #print "headers", self.headers
@@ -73,6 +74,9 @@ class YeastData(object):
     def pairs_in_which(self, index):
         for line_dict in self.line_dicts:
             which = line_dict[WHICH]
+            if len(which) <= index:
+                print "bad which indicator string ", repr(which)
+                continue
             if which[index] != "1":
                 continue
             tf = line_dict[TF]
@@ -82,7 +86,7 @@ class YeastData(object):
 
     def which_cluster_multi(self):
         L = [self.network(self.pairs_in_which(i), "which:" + repr(i)) for i in range(4)]
-        L = [self.get_network()] + L
+        L = [self.expression_network()] + L
         return self.two_column_multi(L)
 
     def precisions(self):
@@ -94,16 +98,16 @@ class YeastData(object):
 
     def cond_clusters_multi(self):
         L = [self.network(self.pairs_in_cluster(v, COND), v) for v in self.cond_clusters]
-        L = [self.get_network()] + L
+        L = [self.expression_network()] + L
         return self.two_column_multi(L)
 
     def gene_clusters_multi(self):
         L = [self.network(self.pairs_in_cluster(v), v) for v in self.gene_clusters]
-        L = [self.get_network()] + L
+        L = [self.expression_network()] + L
         return self.two_column_multi(L)
 
     def in_networks_multi(self):
-        L = [self.get_network(), self.get_network("in.any")] + [self.get_network(n) for n in IN_NETWORKS]
+        L = [self.expression_network(), self.get_network("in.any")] + [self.get_network(n) for n in IN_NETWORKS]
         return self.two_column_multi(L)
 
     def two_column_multi(self, networks):
@@ -164,10 +168,10 @@ class YeastData(object):
         N.title_html.value = name
         N.restore_click()
         N.container_dropdown.value = dNetwork.CANVAS
-        # for precision network only pair with expression levels... AWAITING DATA.
         return N
 
-    def linked_expression(self, filename="expression.tsv", side_length=500):
+    def expression_network(self, side_length=500):
+        filename = self.expression_fn
         L = LExpression.LinkedExpressionNetwork()
         N = L.network
         N = self.network(N=N)
